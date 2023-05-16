@@ -16,6 +16,7 @@ Metadata:
         Label:
           default: "3. Salesforce Config"
         Parameters:
+          - sfOrgName
           - sfHost
           - sfOrgId
           - sfMode
@@ -40,6 +41,8 @@ Metadata:
         default: "What is your Amazon Connect instance alias?"
       LambdaLoggingLevel:
         default: "For the included AWS Lambda functions, what should the default logging level be set to?"
+      sfOrgName:
+        default: "(SANDBOX ONLY) What is your Salesforce org name?"
       sfHost:
         default: "What is your Salesforce org Current My Domain URL?"
       sfOrgId:
@@ -85,6 +88,10 @@ Parameters:
       - INFO
       - DEBUG
     Description: Default is Error. This can be changed later. Details on logging levels can be found at https://docs.python.org/3/howto/logging.html
+  sfOrgName:
+    Type: String
+    Default: ''
+    Description: Not required and only used for Salesforce Sandboxes purposes.
   sfConsumerKey:
     Type: String
     Default: REPLACEME
@@ -139,6 +146,7 @@ Resources:
                 - ''
                 - - 'awsscv_salesforce_config_'
                   - !Ref ConnectInstanceAlias
+                  - !Ref sfOrgName
           Description: Required credentials to access Salesforce
           SecretString: !Sub
             - '{"OAuthToken":"${OT}","ConsumerKey":"${CK}","Username":"${UN}","OrgId":"${OI}","Host":"${SH}","PrivateKey":"${PK}","Version":"${VR}", "Mode":"${MD}"}'
@@ -161,6 +169,7 @@ Resources:
             - ''
             - - 'awsscv_common_secrets_policy_'
               - !Ref ConnectInstanceAlias
+              - !Ref sfOrgName
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -183,6 +192,7 @@ Resources:
             - ''
             - - 'awsscv_common_role_'
               - !Ref ConnectInstanceAlias
+              - !Ref sfOrgName
           Description: Provides foundational access to Kinesis, KVS, CloudWatch Logs, and the Salesforce secrets
           AssumeRolePolicyDocument:
             Version: 2012-10-17
@@ -223,6 +233,7 @@ Resources:
             - ''
             - - 'common_python_layer_'
               - !Ref ConnectInstanceAlias
+              - !Ref sfOrgName
           LicenseInfo: https://aws.amazon.com/apache-2-0
 
     SCVCommonNodeLayer:
@@ -249,6 +260,7 @@ Resources:
             - ''
             - - 'common_node_layer_'
               - !Ref ConnectInstanceAlias
+              - !Ref sfOrgName
           LicenseInfo: https://aws.amazon.com/apache-2-0
 
     SCVSalesforceValidator:
@@ -282,6 +294,7 @@ Resources:
           - ''
           - - 'AWSSCV_Salesforce_Validator_'
             - !Ref ConnectInstanceAlias
+            - !Ref sfOrgName
         Handler: awsscv_salesforce_validator.lambda_handler
         Role: !GetAtt AWSSCVCommonRole.Arn
         Layers: [ !Ref SCVCommonPythonLayer ]
